@@ -14,13 +14,71 @@ pub fn Editor() -> Element {
         CaoLangProgram(Rc::new(RefCell::new(program)))
     });
 
-    let json = format!("{:#?}", program.read().0.borrow());
     rsx! {
         div {
+            class: "mx-auto",
+
             "hello"
-            pre {
-                {json}
+            Program {
+                program,
             }
+        }
+    }
+}
+
+#[component]
+fn Program(program: Signal<CaoLangProgram>) -> Element {
+    rsx! {
+        ul {
+            {
+                (0..program.read().0.borrow().functions.len())
+                    .map(|func_idx|{
+                        rsx!{
+                            li {
+                                Function { function_idx: func_idx, program_sig: program }
+                            }
+                        }
+                    })
+            }
+        }
+    }
+}
+
+#[component]
+fn Function(function_idx: usize, program_sig: Signal<CaoLangProgram>) -> Element {
+    let program = program_sig.read();
+    let program = program.0.borrow();
+    let func = program.functions.get(function_idx);
+    let Some((name, func)) = func else {
+        return rsx! {
+            div {
+                class:"text-red text-4xl",
+                "Function not found"
+            }
+        };
+    };
+    rsx! {
+        div {
+                h2 {
+                    class: "text-2xl",
+                    {name.clone()}
+                }
+                FunctionName {
+                    function_idx,
+                    program_sig,
+                    name
+                }
+        }
+    }
+}
+
+#[component]
+fn FunctionName(function_idx: usize, program_sig: Signal<CaoLangProgram>, name: String) -> Element {
+    let name = use_signal(move || name);
+    rsx! {
+        input {
+            r#type: "text",
+            value: name,
         }
     }
 }
