@@ -74,11 +74,17 @@ fn Function(function_idx: usize, program_sig: Signal<CaoLangProgram>) -> Element
 
 #[component]
 fn FunctionName(function_idx: usize, program_sig: Signal<CaoLangProgram>, name: String) -> Element {
-    let name = use_signal(move || name);
+    let mut name = use_signal(move || name);
+    use_effect(move || {
+        let program = program_sig.write();
+        let mut program = program.0.borrow_mut();
+        program.functions[function_idx].0 = name.read().to_string();
+    });
     rsx! {
         input {
             r#type: "text",
-            value: name,
+            value: "{name}",
+            oninput: move |event| name.set(event.value())
         }
     }
 }
