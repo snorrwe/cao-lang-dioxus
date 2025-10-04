@@ -9,6 +9,7 @@ edition = "2021"
 [dependencies]
 cao-lang = "0.2.6"
 dioxus = { version = "0.6.0", features = ["router"] }
+serde_yaml = "0.9.34"
 
 [features]
 default = ["desktop"]
