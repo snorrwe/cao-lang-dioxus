@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
-#[rustfmt::skip]
 enum Route {
     #[layout(Navbar)]
     #[route("/")]
