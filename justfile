@@ -1,4 +1,5 @@
-# https://just.systems
+_default:
+    @just --list
 
-default:
-    echo 'Hello, world!'
+dev:
+    dx serve
