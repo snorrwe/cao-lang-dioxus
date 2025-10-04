@@ -34,6 +34,17 @@
             })
             cargo-edit
             dioxus-cli
+
+            pkg-config
+            xdotool
+            curl
+            wget
+            file
+            openssl
+            librsvg
+            libappindicator-gtk3
+            libsoup_3
+            webkitgtk_4_1
           ];
         };
       }
