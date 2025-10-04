@@ -19,6 +19,7 @@ pub fn Editor() -> Element {
 
             "hello"
             Program { program }
+            DebugProgram { program }
         }
     }
 }
@@ -73,6 +74,16 @@ fn FunctionName(function_idx: usize, program_sig: Signal<CaoLangProgram>, name: 
             class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
             value: "{name}",
             oninput: move |event| name.set(event.value()),
+        }
+    }
+}
+
+#[component]
+fn DebugProgram(program: Signal<CaoLangProgram>) -> Element {
+    let s = format!("{:#?}", program.read().0.borrow());
+    rsx! {
+        pre {
+            {s}
         }
     }
 }
