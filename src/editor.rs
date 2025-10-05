@@ -77,17 +77,26 @@ fn Card(idx: CardIndex) -> Element {
     let program = &program_sig.read().0;
     let card = program.get_card(&idx).unwrap();
 
-    let children = (0..card.num_children() as usize).map({
+    let children = {
         let idx = idx.clone();
-        move |i| {
-            let idx = idx.clone().with_sub_index(i);
-            rsx! {
-                li {
-                    Card { idx }
+        move |sep: &str, cls: &str| {
+            let items = (0..card.num_children() as usize).map({
+                let idx = idx.clone();
+                move |i| {
+                    let idx = idx.clone().with_sub_index(i);
+                    rsx! {
+                        span { class: "min-w-4 min-h-4 m-4 text-4xl", {if i == 0 { "" } else { sep }} }
+                        li {
+                            Card { idx }
+                        }
+                    }
                 }
+            });
+            rsx! {
+                ul { class: cls, {items} }
             }
         }
-    });
+    };
 
     let body = match card {
         CaoLangCard::ReadVar(name) => {
@@ -112,17 +121,23 @@ fn Card(idx: CardIndex) -> Element {
                 }
             }
         }
-        _ => {
-            rsx!(
+        CaoLangCard::Sub(_) => {
+            rsx! {
                 h3 { class: "text-xl", {card.name()} }
-            )
+                {children("-", "ml-4 mt-2 flex justify-start items-center w-full")}
+            }
+        }
+        _ => {
+            rsx! {
+                h3 { class: "text-xl", {card.name()} }
+                {children(",", "ml-4 mt-2 flex justify-start items-center w-full")}
+            }
         }
     };
 
     rsx! {
-        div {
+        div { class: "border-2 border-solid p-4 rounded-lg",
             div { {body} }
-            ul { class: "ml-4 mt-2", {children} }
         }
     }
 }
@@ -150,6 +165,6 @@ fn FunctionName(function_idx: usize, name: String) -> Element {
 fn DebugProgram(program: Signal<CaoLangProgram>) -> Element {
     let s = format!("{:#?}", program.read().0);
     rsx! {
-        pre { {s} }
+        pre { class: "my-64", {s} }
     }
 }
