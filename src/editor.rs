@@ -26,18 +26,16 @@ pub fn Editor() -> Element {
 
 #[component]
 fn Program(program: Signal<CaoLangProgram>) -> Element {
+    let functions_it = (0..program.read().0.borrow().functions.len()).map(|func_idx| {
+        rsx! {
+            li {
+                Function { function_idx: func_idx, program_sig: program }
+            }
+        }
+    });
     rsx! {
         ul {
-            {
-                (0..program.read().0.borrow().functions.len())
-                    .map(|func_idx| {
-                        rsx! {
-                            li {
-                                Function { function_idx: func_idx, program_sig: program }
-                            }
-                        }
-                    })
-            }
+            { functions_it }
         }
     }
 }
