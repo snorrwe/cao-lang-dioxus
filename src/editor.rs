@@ -1,17 +1,15 @@
-use std::{cell::RefCell, rc::Rc};
-
 use dioxus::prelude::*;
 
 const FIB_PROG: &[u8] = include_bytes!("../assets/fibonacci_program_recursive.yaml");
 
 #[derive(Clone)]
-pub struct CaoLangProgram(pub Rc<RefCell<cao_lang::prelude::CaoProgram>>);
+pub struct CaoLangProgram(pub cao_lang::prelude::CaoProgram);
 
 #[component]
 pub fn Editor() -> Element {
     let program = use_signal(|| {
         let program: cao_lang::prelude::CaoProgram = serde_yaml::from_slice(&FIB_PROG).unwrap();
-        CaoLangProgram(Rc::new(RefCell::new(program)))
+        CaoLangProgram(program)
     });
 
     rsx! {
@@ -26,10 +24,11 @@ pub fn Editor() -> Element {
 
 #[component]
 fn Program(program: Signal<CaoLangProgram>) -> Element {
-    let functions_it = (0..program.read().0.borrow().functions.len()).map(|func_idx| {
+    use_context_provider(|| program);
+    let functions_it = (0..program.read().0.functions.len()).map(|func_idx| {
         rsx! {
             li {
-                Function { function_idx: func_idx, program_sig: program }
+                Function { function_idx: func_idx }
             }
         }
     });
@@ -41,10 +40,10 @@ fn Program(program: Signal<CaoLangProgram>) -> Element {
 }
 
 #[component]
-fn Function(function_idx: usize, program_sig: Signal<CaoLangProgram>) -> Element {
+fn Function(function_idx: usize) -> Element {
+    let program_sig = use_context::<Signal<CaoLangProgram>>();
     let program = program_sig.read();
-    let program = program.0.borrow();
-    let func = program.functions.get(function_idx);
+    let func = program.0.functions.get(function_idx);
     let Some((name, func)) = func else {
         return rsx! {
             div { class: "text-red text-4xl", "Function not found" }
@@ -52,21 +51,31 @@ fn Function(function_idx: usize, program_sig: Signal<CaoLangProgram>) -> Element
     };
     rsx! {
         div {
-            h2 { class: "text-2xl", {name.clone()} }
-            FunctionName { function_idx, program_sig, name }
+            FunctionName { function_idx, name }
+            FunctionBody { function_idx }
         }
     }
 }
 
 #[component]
-fn FunctionName(function_idx: usize, program_sig: Signal<CaoLangProgram>, name: String) -> Element {
+fn FunctionBody(function_idx: usize) -> Element {
+    rsx! {
+        ul {
+
+        }
+    }
+}
+
+#[component]
+fn FunctionName(function_idx: usize, name: String) -> Element {
+    let mut program_sig = use_context::<Signal<CaoLangProgram>>();
     let mut name = use_signal(move || name);
     use_effect(move || {
-        let program = program_sig.write();
-        let mut program = program.0.borrow_mut();
-        program.functions[function_idx].0 = name.read().to_string();
+        let mut program = program_sig.write();
+        program.0.functions[function_idx].0 = name.read().to_string();
     });
     rsx! {
+        h2 { class: "text-2xl", {name} }
         input {
             r#type: "text",
             class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
@@ -78,7 +87,7 @@ fn FunctionName(function_idx: usize, program_sig: Signal<CaoLangProgram>, name: 
 
 #[component]
 fn DebugProgram(program: Signal<CaoLangProgram>) -> Element {
-    let s = format!("{:#?}", program.read().0.borrow());
+    let s = format!("{:#?}", program.read().0);
     rsx! {
         pre {
             {s}
