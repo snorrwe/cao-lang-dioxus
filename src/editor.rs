@@ -14,8 +14,7 @@ pub fn Editor() -> Element {
     });
 
     rsx! {
-        div { class: "mx-auto",
-
+        div { class: "mx-auto max-w-[80%]",
             "hello"
             Program { program }
             DebugProgram { program }
