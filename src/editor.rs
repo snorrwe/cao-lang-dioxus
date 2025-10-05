@@ -85,7 +85,7 @@ fn Card(idx: CardIndex) -> Element {
                 move |i| {
                     let idx = idx.clone().with_sub_index(i);
                     rsx! {
-                        span { class: "min-w-4 min-h-4 m-4 text-4xl", {if i == 0 { "" } else { sep }} }
+                        span { class: "min-w-4 min-h-4 m-4 text-8xl", {if i == 0 { "" } else { sep }} }
                         li {
                             Card { idx }
                         }
@@ -125,6 +125,34 @@ fn Card(idx: CardIndex) -> Element {
             rsx! {
                 h3 { class: "text-xl", {card.name()} }
                 {children("-", "ml-4 mt-2 flex justify-start items-center w-full")}
+            }
+        }
+        CaoLangCard::Add(_) => {
+            rsx! {
+                h3 { class: "text-xl", {card.name()} }
+                {children("+", "ml-4 mt-2 flex justify-start items-center w-full")}
+            }
+        }
+        CaoLangCard::Call(call) => {
+            let mut name = use_signal(|| call.function_name.clone());
+            use_effect(move || {
+                let mut program = program_sig.write();
+                let card = program.0.get_card_mut(&idx).unwrap();
+                if let CaoLangCard::Call(call) = card {
+                    call.function_name = name.read().to_string();
+                }
+            });
+            rsx! {
+                div { class: "flex justify-start items-center w-full gap-4",
+                    h3 { class: "text-xl", {card.name()} }
+                    input {
+                        r#type: "text",
+                        class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                        value: "{name}",
+                        oninput: move |event| name.set(event.value()),
+                    }
+                }
+                div { {children(",", "ml-4 mt-2 flex justify-start items-center w-full")} }
             }
         }
         _ => {
@@ -171,7 +199,11 @@ fn FunctionName(function_idx: usize, name: String) -> Element {
         }
     } else {
         rsx! {
-            h2 { class: "text-2xl cursor-pointer", ondoubleclick: toggle_editing, {name} }
+            h2 {
+                class: "text-2xl cursor-pointer",
+                ondoubleclick: toggle_editing,
+                {name}
+            }
         }
     }
 }
