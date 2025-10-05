@@ -1,3 +1,4 @@
+use cao_lang::prelude::CardIndex;
 use dioxus::prelude::*;
 
 const FIB_PROG: &[u8] = include_bytes!("../assets/fibonacci_program_recursive.yaml");
@@ -33,9 +34,7 @@ fn Program(program: Signal<CaoLangProgram>) -> Element {
         }
     });
     rsx! {
-        ul {
-            { functions_it }
-        }
+        ul { {functions_it} }
     }
 }
 
@@ -44,7 +43,7 @@ fn Function(function_idx: usize) -> Element {
     let program_sig = use_context::<Signal<CaoLangProgram>>();
     let program = program_sig.read();
     let func = program.0.functions.get(function_idx);
-    let Some((name, func)) = func else {
+    let Some((name, _func)) = func else {
         return rsx! {
             div { class: "text-red text-4xl", "Function not found" }
         };
@@ -59,9 +58,39 @@ fn Function(function_idx: usize) -> Element {
 
 #[component]
 fn FunctionBody(function_idx: usize) -> Element {
+    let program_sig = use_context::<Signal<CaoLangProgram>>();
+    let (_name, func) = &program_sig.read().0.functions[function_idx];
+    let cards = (0..func.cards.len()).map(|i| {
+        rsx! {
+            li {
+                Card { idx: CardIndex::new(function_idx, i) }
+            }
+        }
+    });
     rsx! {
-        ul {
+        ul { {cards} }
+    }
+}
 
+#[component]
+fn Card(idx: CardIndex) -> Element {
+    let program_sig = use_context::<Signal<CaoLangProgram>>();
+    let program = &program_sig.read().0;
+    let card = program.get_card(&idx).unwrap();
+
+    let children = (0..card.num_children() as usize).map(|i| {
+        let idx = idx.clone().with_sub_index(i);
+        rsx! {
+            li {
+                Card { idx }
+            }
+        }
+    });
+
+    rsx! {
+        div {
+            h3 { class: "text-xl", {card.name()} }
+            ul { class: "ml-4 mt-2", {children} }
         }
     }
 }
@@ -89,8 +118,6 @@ fn FunctionName(function_idx: usize, name: String) -> Element {
 fn DebugProgram(program: Signal<CaoLangProgram>) -> Element {
     let s = format!("{:#?}", program.read().0);
     rsx! {
-        pre {
-            {s}
-        }
+        pre { {s} }
     }
 }
