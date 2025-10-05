@@ -144,19 +144,34 @@ fn Card(idx: CardIndex) -> Element {
 
 #[component]
 fn FunctionName(function_idx: usize, name: String) -> Element {
+    let mut editing = use_signal(|| false);
+
     let mut program_sig = use_context::<Signal<CaoLangProgram>>();
     let mut name = use_signal(move || name);
     use_effect(move || {
         let mut program = program_sig.write();
         program.0.functions[function_idx].0 = name.read().to_string();
     });
-    rsx! {
-        h2 { class: "text-2xl", {name} }
-        input {
-            r#type: "text",
-            class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
-            value: "{name}",
-            oninput: move |event| name.set(event.value()),
+
+    let toggle_editing = move |_| {
+        let mut e = editing.write();
+        let value = *e;
+        *e = !value;
+    };
+
+    if *editing.read() {
+        rsx! {
+            input {
+                ondoubleclick: toggle_editing,
+                r#type: "text",
+                class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
+                value: "{name}",
+                oninput: move |event| name.set(event.value()),
+            }
+        }
+    } else {
+        rsx! {
+            h2 { class: "text-2xl cursor-pointer", ondoubleclick: toggle_editing, {name} }
         }
     }
 }
